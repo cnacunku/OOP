@@ -16,13 +16,13 @@ void plenum(int array[N][N]) {
                 array[li][pi] = num++;
         }
         else {
-            for (int li = N - 1; li >= 0; li--) 
+            for (int li = N - 1; li >= 0; li--)
                 array[li][pi] = num++;
         }
     }
 }
 
-void print_array(int array[N][N]) {
+void printArray(int array[N][N]) {
     for (int i = 0; i < N; i++) {
         for (int j = 0; j < N; j++) {
             if (array[i][j] >= 10)
@@ -32,11 +32,24 @@ void print_array(int array[N][N]) {
         }
         cout << endl;
     }
-
+    cout << endl;
 }
 
-int determinant(int matrix[N][N], int n) {
-    int det = 0;
+void printDarray(double array[N][N]) {
+    for (int i = 0; i < N; i++) {
+        for (int j = 0; j < N; j++) {
+            if (array[i][j] >= 10)
+                cout << array[i][j] << " ";
+            else
+                cout << array[i][j] << "  ";
+        }
+        cout << endl;
+    }
+    cout << endl;
+}
+
+double delta(double matrix[N][N], int n) {
+    double det = 0;
 
     if (n == 1) {
         return matrix[0][0];
@@ -47,7 +60,7 @@ int determinant(int matrix[N][N], int n) {
     }
 
     for (int x = 0; x < n; x++) {
-        int minor[N][N];
+        double minor[N][N];
         int m = 0, nIndex = 0;
         // Заполнение минорной матрицы
         for (int i = 1; i < n; i++) { // Начинаем с 1, чтобы пропустить первую строку
@@ -63,30 +76,92 @@ int determinant(int matrix[N][N], int n) {
         }
         // Рекурсивный вызов для вычисления определителя
         int sign = (x % 2 == 0) ? 1 : -1; // Знак (-1)^x
-        det += sign * matrix[0][x] * determinant(minor, n - 1);
+        det += sign * matrix[0][x] * delta(minor, n - 1);
     }
     return det;
 }
 
+bool invArray(double array[N][N], double iarray[N][N]) {
+    double check = delta(array, N);
+    if (check == 0) {
+        return false; // В случае отсутстия обратной матрицы
+    }
+
+    double zam[N][N * 2] = { 0 };
+
+    // Копируем исходную матрицу и инициализируем расширенную матрицу
+    for (int i = 0; i < N; i++) {
+        for (int j = 0; j < N; j++) {
+            zam[i][j] = array[i][j];
+        }
+        zam[i][i + N] = 1; // Добавляем диничную матрицу справа
+    }
+
+    // Метод Гаусса-Жордана
+    for (int i = 0; i < N; i++) {
+        // Нормализация текущей строки
+        double rev = zam[i][i];
+        for (int j = 0; j < 2 * N; j++) {
+            zam[i][j] /= rev;
+        }
+
+        // Обнуляем значения в текущем столбце
+        for (int k = 0; k < N; k++) {
+            if (k != i) {
+                double numb = zam[k][i];
+                for (int j = 0; j < 2 * N; j++) {
+                    zam[k][j] -= numb * zam[i][j];
+                }
+            }
+        }
+    }
+
+    // Копируем обратную матрицу из расширенной матрицы
+    for (int i = 0; i < N; ++i) {
+        for (int j = 0; j < N; ++j) {
+            iarray[i][j] = zam[i][j + N];
+        }
+    }
+
+    return true;
+}
+
+void multiplyMatrices(double first[N][N], double second[N][N], double result[N][N]) {
+    for (int i = 0; i < N; i++) {
+        for (int j = 0; j < N; j++) {
+            result[i][j] = 0; // Инициализация элемента результата
+            for (int k = 0; k < N; k++) {
+                result[i][j] += first[i][k] * second[k][j];
+            }
+        }
+    }
+}
 
 int main() {
     setlocale(LC_CTYPE, "RUS");
 
     int array[N][N];
+    double darray[N][N],iarray[N][N];
 
     plenum(array);
 
-    print_array(array);
+    cout << "Исходная матрица: " << endl;
+    printArray(array);
 
-    int matrix[N][N] = {
-        {1, 0, 2, -1},
-        {3, 0, 0, 5},
-        {2, 1, 4, -3},
-        {1, 0, 5, 0}
-    };
+    for (int i = 0; i < N; ++i) {
+        for (int j = 0; j < N; ++j) {
+            darray[i][j] = static_cast<double>(array[i][j]);
+        }
+    }
 
-    int det = determinant(matrix, 4);
-    cout << "Определитель матрицы: " << det << endl;
+    if (invArray(darray, iarray)) {
+        cout << "Обратная матрица: " << endl;
+        printDarray(iarray);
+    }
+    else {
+        cout << "Обратная матрица не существует." << endl;
+    }
+
 
 
     return 0;
