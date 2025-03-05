@@ -1,0 +1,174 @@
+#include <iostream>
+#include <cmath>
+#include <locale>
+#include <string>
+#include <iomanip>
+
+#define N 4 // Определяем размерность матрицы N x N
+
+using namespace std;
+
+// Функция для заполнения матрицы по спирали
+void plenum(int array[N][N]) {
+    int num = 1; // Начальное значение для заполнения
+    for (int pi = 0; pi < N; pi++) {
+        if (pi % 2 == 0) {
+            for (int li = 0; li < N; li++)
+                array[li][pi] = num++; // Заполняем столбец сверху вниз
+        }
+        else {
+            for (int li = N - 1; li >= 0; li--)
+                array[li][pi] = num++; // Заполняем столбец снизу вверх
+        }
+    }
+}
+
+// Функция для вывода целочисленной матрицы
+void printArray(int array[N][N]) {
+    for (int i = 0; i < N; i++) {
+        for (int j = 0; j < N; j++) {
+            // Форматируем вывод для лучшей читаемости
+            if (array[i][j] >= 10)
+                cout << array[i][j] << " ";
+            else
+                cout << array[i][j] << "  ";
+        }
+        cout << endl; // Переход на новую строку после вывода строки матрицы
+    }
+    cout << endl; // Дополнительный переход для разделения выводов
+}
+
+// Функция для вывода матрицы с плавающей точкой
+void printDarray(double array[N][N]) {
+    for (int i = 0; i < N; i++) {
+        for (int j = 0; j < N; j++) {
+            if (array[i][j] >= 10)
+                cout << array[i][j] << " ";
+            else
+                cout << array[i][j] << "  ";
+        }
+        cout << endl;
+    }
+    cout << endl;
+}
+
+// Функция для вычисления определителя матрицы
+double delta(double matrix[N][N], int n) {
+    double det = 0; // Переменная для хранения значения определителя
+
+    if (n == 1) {
+        return matrix[0][0]; // Определитель 1x1
+    }
+
+    if (n == 2) {
+        return matrix[0][0] * matrix[1][1] - matrix[0][1] * matrix[1][0]; // Определитель 2x2
+    }
+
+    for (int x = 0; x < n; x++) {
+        double minor[N][N]; // Массив для хранения минорной матрицы
+        int m = 0, nIndex = 0;
+
+        // Заполнение минорной матрицы
+        for (int i = 1; i < n; i++) {
+            for (int j = 0; j < n; j++) {
+                if (j != x) {
+                    minor[m][nIndex++] = matrix[i][j];
+                    if (nIndex == n - 1) {
+                        nIndex = 0;
+                        m++;
+                    }
+                }
+            }
+        }
+
+        // Рекурсивный вызов для вычисления определителя
+        int sign = (x % 2 == 0) ? 1 : -1; // Знак (-1)^x
+        det += sign * matrix[0][x] * delta(minor, n - 1); // Добавляем к определителю
+    }
+    return det; // Возвращаем вычисленный определитель
+}
+
+// Функция для нахождения обратной матрицы
+bool invArray(double array[N][N], double iarray[N][N]) {
+    double check = delta(array, N); // Вычисляем определитель
+    if (check == 0) {
+        return false; // Обратная матрица не существует
+    }
+
+    double zam[N][N * 2] = { 0 }; // Расширенная матрица
+
+    // Копируем исходную матрицу и инициализируем расширенную матрицу
+    for (int i = 0; i < N; i++) {
+        for (int j = 0; j < N; j++) {
+            zam[i][j] = array[i][j];
+        }
+        zam[i][i + N] = 1; // Добавляем единичную матрицу справа
+    }
+
+    // Метод Гаусса-Жордана
+    for (int i = 0; i < N; i++) {
+        double rev = zam[i][i]; // Нормализация текущей строки
+        for (int j = 0; j < 2 * N; j++) {
+            zam[i][j] /= rev; // Делим строку на ведущий элемент
+        }
+
+        // Обнуляем значения в текущем столбце
+        for (int k = 0; k < N; k++) {
+            if (k != i) {
+                double numb = zam[k][i];
+                for (int j = 0; j < 2 * N; j++) {
+                    zam[k][j] -= numb * zam[i][j]; // Вычитаем из других строк
+                }
+            }
+        }
+    }
+
+    // Копируем обратную матрицу из расширенной матрицы
+    for (int i = 0; i < N; ++i) {
+        for (int j = 0; j < N; ++j) {
+            iarray[i][j] = zam[i][j + N]; // Извлекаем обратную матрицу
+        }
+    }
+
+    return true; // Успешно нашли обратную матрицу
+}
+
+// Функция для умножения матриц
+void mult(double first[N][N], double second[N][N], double result[N][N]) {
+    for (int i = 0; i < N; i++) {
+        for (int j = 0; j < N; j++) {
+            result[i][j] = 0; // Инициализация элемента результата
+            for (int k = 0; k < N; k++) {
+                result[i][j] += first[i][k] * second[k][j]; // Умножение матриц
+            }
+        }
+    }
+}
+
+int main() {
+    setlocale(LC_CTYPE, "RUS"); // Установка локали для вывода
+
+    int array[N][N]; // Целочисленная матрица
+    double darray[N][N], iarray[N][N]; // Матрицы с плавающей точкой и обратная матрица
+
+    plenum(array); // Заполнение матрицы
+
+    cout << "Исходная матрица: " << endl;
+    printArray(array); // Вывод исходной матрицы
+
+    for (int i = 0; i < N; ++i) {
+        for (int j = 0; j < N; ++j) {
+            darray[i][j] = static_cast<double>(array[i][j]); // Преобразование в матрицу с плавающей точкой
+        }
+    }
+
+    if (invArray(darray, iarray)) {
+        cout << "Обратная матрица: " << endl;
+        printDarray(iarray); // Вывод обратной матрицы
+    }
+    else {
+        cout << "Обратная матрица не существует." << endl; // Сообщение об отсутствии обратной матрицы
+    }
+
+    return 0; // Завершение программы
+}
