@@ -15,7 +15,7 @@ struct Train {
     char Time[6];
     char Nazn[MAX];
     char Otpr[MAX];
-}; 
+};
 typedef struct Train Train_T;
 
 void add_train(Train_T* trains, int* Train_count);
@@ -25,8 +25,34 @@ void find_trains(const Train_T* trains, int Train_count, const char* searchNazn)
 int main() {
     setlocale(LC_CTYPE, "RUS");
 
+    cout << endl << "Пункт 1" << endl;
+
+    string input;
+
+    cout << "Введите строки (для окончания бексконечного ввода введите строку, заканчивающуюся на 'quit'):\n";
+
+    while (getline(cin, input)) { // Цикл, пока считывание успешно
+        if (input.size() >= 4 && input.substr(input.size() - 4) == "quit") { // Проверяем на наличие 4 символов(ради quit) 
+            break; // Выход из цикла
+        }
+
+        // Подсчет количества точек в строке
+        int Tochechka = 0;
+        for (char c : input) {
+            if (c == '.') {
+                Tochechka++;
+            }
+        }
+
+        cout << "Количество точек в строке: " << Tochechka << endl;
+    }
+    cout << "Программа завершена." << endl;
+
+
+    cout << endl << "Пункт 3" << endl;
+
     Train_T trains[Wakey];
-    int Train_count = 0; 
+    int Train_count = 0;
     char searchNazn[MAX];
 
     add_train(trains, &Train_count);
@@ -37,7 +63,7 @@ int main() {
 
     find_trains(trains, Train_count, searchNazn);
 
-    return 0; 
+    return 0;
 }
 
 void add_train(Train_T* trains, int* Train_count) {
@@ -70,13 +96,12 @@ void find_trains(const Train_T* trains, int Train_count, const char* searchNazn)
     for (int i = 0; i < Train_count; i++) {
         if (strcmp(trains[i].Nazn, searchNazn) == 0) {
             cout << "Номер поезда: " << trains[i].Numr << ", "
-                 << "Время отправления: " << trains[i].Time << ", "
-                 << "Пункт отправления: " << trains[i].Otpr << endl;
+                << "Время отправления: " << trains[i].Time << ", "
+                << "Пункт отправления: " << trains[i].Otpr << endl;
             search++;
         }
     }
 
-    // Если поезда не найдены
     if (search == 0) {
         cout << "Поездов, направляющихся в " << searchNazn << ", нет." << endl;
     }
