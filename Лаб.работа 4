@@ -1,0 +1,83 @@
+#include <iostream>
+#include <cstring>
+#include <locale>
+#include <string>
+#include <iomanip>
+
+#define Wakey 6
+#define MAX 100
+
+
+using namespace std;
+
+struct Train {
+    int Numr;
+    char Time[6];
+    char Nazn[MAX];
+    char Otpr[MAX];
+}; 
+typedef struct Train Train_T;
+
+void add_train(Train_T* trains, int* Train_count);
+void find_trains(const Train_T* trains, int Train_count, const char* searchNazn);
+
+
+int main() {
+    setlocale(LC_CTYPE, "RUS");
+
+    Train_T trains[Wakey];
+    int Train_count = 0; 
+    char searchNazn[MAX];
+
+    add_train(trains, &Train_count);
+    add_train(trains, &Train_count);
+
+    cout << "Введите пункт назначения для поиска: ";
+    cin >> searchNazn;
+
+    find_trains(trains, Train_count, searchNazn);
+
+    return 0; 
+}
+
+void add_train(Train_T* trains, int* Train_count) {
+
+    if (*Train_count >= Wakey) {
+        cout << "Ошибка: превышено максимальное количество поездов." << endl;
+        return;
+    }
+
+    cout << "Введите номер поезда: ";
+    cin >> trains[*Train_count].Numr;
+
+    cout << "Время отправления (чч:мм): ";
+    cin >> trains[*Train_count].Time;
+
+    cout << "Введите название пункта назначения: ";
+    cin >> trains[*Train_count].Nazn;
+
+    cout << "Введите название пункта отправления: ";
+    cin >> trains[*Train_count].Otpr;
+
+    cout << endl;
+
+    (*Train_count)++;
+}
+
+void find_trains(const Train_T* trains, int Train_count, const char* searchNazn) {
+    int search = 0;
+    cout << "Поезда, направляющиеся в " << searchNazn << ":\n";
+    for (int i = 0; i < Train_count; i++) {
+        if (strcmp(trains[i].Nazn, searchNazn) == 0) {
+            cout << "Номер поезда: " << trains[i].Numr << ", "
+                 << "Время отправления: " << trains[i].Time << ", "
+                 << "Пункт отправления: " << trains[i].Otpr << endl;
+            search++;
+        }
+    }
+
+    // Если поезда не найдены
+    if (search == 0) {
+        cout << "Поездов, направляющихся в " << searchNazn << ", нет." << endl;
+    }
+}
