@@ -1,0 +1,139 @@
+// Point.h - Заголовочный файл для класса Point
+#ifndef POINT_H
+#define POINT_H
+
+#include <iostream>
+using namespace std;
+
+// Базовый класс Point (Точка)
+class Point {
+protected:
+    double x, y; // Координаты точки
+public:
+    Point(double x = 0, double y = 0); // Конструктор с параметрами по умолчанию
+    virtual void display() const; // Метод для отображения координат точки
+    virtual ~Point() {} // Виртуальный деструктор
+    double getX() const { return x; };
+    double getY() const { return y; }
+    void setX(double xx) { x = xx; };
+    void setY(double yy) { y = yy; };
+};
+
+#endif // POINT_H
+
+// Quadrilateral.h - Заголовочный файл для класса Quadrilateral
+#ifndef QUADRILATERAL_H
+#define QUADRILATERAL_H
+#include "Point.h"
+
+// Класс Quadrilateral (Четырёхугольник), наследуется от Point
+class Quadrilateral : public Point {
+protected:
+    double lenght, width; // Длина и ширина четырехугольника
+public:
+    Quadrilateral(double x, double y, double lenght, double width); // Конструктор
+    virtual void display() const override; // Переопределенный метод отображения
+    double area() const; // Метод вычисления площади
+    double perimetr() const; // Метод вычисления периметра
+    void setLenght(double l) { if (l >= 0) lenght = l; };
+    void setWidth(double w) { if (w >= 0) width = w; }
+};
+
+#endif // QUADRILATERAL_H
+
+// Parallelepiped.h - Заголовочный файл для класса Parallelepiped
+#ifndef PARALLELEPIPED_H
+#define PARALLELEPIPED_H
+#include "Quadrilateral.h"
+
+// Класс Parallelepiped (Параллелепипед), наследуется от Quadrilateral
+class Parallelepiped : public Quadrilateral {
+protected:
+    double height; // Высота параллелепипеда
+public:
+    Parallelepiped(double x, double y, double lenght, double width, double height); // Конструктор
+    void display() const override; // Переопределенный метод отображения
+    double volume() const; // Метод вычисления объема
+    double surfaceArea() const;
+    void setHeight(double h) { if (h >= 0) height = h; }
+};
+
+#endif // PARALLELEPIPED_H
+
+// Point.cpp - Реализация класса Point
+#include "Point.h"
+
+// Конструктор класса Point
+Point::Point(double x, double y) : x(x), y(y) {}
+
+// Метод отображения координат точки
+void Point::display() const {
+    cout << "Точка: (" << x << ", " << y << ")\n";
+}
+
+// Quadrilateral.cpp - Реализация класса Quadrilateral
+#include "Quadrilateral.h"
+
+// Конструктор класса Quadrilateral
+Quadrilateral::Quadrilateral(double x, double y, double lenght, double width)
+    : Point(x, y), lenght(lenght), width(width) {
+}
+
+// Метод вычисления площади четырехугольника
+double Quadrilateral::area() const {
+    return lenght * width;
+}
+
+double Quadrilateral::perimetr() const {
+    return 2 * (lenght + width);
+}
+
+// Метод отображения данных о четырехугольнике
+void Quadrilateral::display() const {
+    cout << "Четырехугольник в (" << x << ", " << y << ") с длиной: "
+        << lenght << " и шириной: " << width << "\n";
+}
+
+// Parallelepiped.cpp - Реализация класса Parallelepiped
+#include "Parallelepiped.h"
+
+// Конструктор класса Parallelepiped
+Parallelepiped::Parallelepiped(double x, double y, double lenght, double width, double height)
+    : Quadrilateral(x, y, lenght, width), height(height) {
+}
+
+// Метод вычисления объема параллелепипеда
+double Parallelepiped::volume() const {
+    return lenght * width * height;
+}
+
+double Parallelepiped::surfaceArea() const {
+    return 2 * (lenght * width + lenght * height + width * height);
+}
+
+// Метод отображения данных о параллелепипеде
+void Parallelepiped::display() const {
+    cout << "Параллелепипед находится в (" << x << ", " << y << ") с длиной: "
+        << lenght << ", шириной: " << width << " и высотой: " << height << "\n";
+}
+
+// main.cpp - Основная программа
+#include "Point.h"
+#include "Quadrilateral.h"
+#include "Parallelepiped.h"
+
+int main() {
+    // Создание объектов разных классов
+    Point p(1, 2); // Объект класса Point
+    Quadrilateral q(3, 4, 5, 6); // Объект класса Quadrilateral
+    Parallelepiped pp(7, 8, 9, 10, 11); // Объект класса Parallelepiped
+
+    // Вызов методов отображения и вычислений
+    p.display(); // Вывод координат точки
+    q.display(); // Вывод параметров четырехугольника
+    cout << "Quadrilateral area: " << q.area() << "\n"; // Вывод площади
+    pp.display(); // Вывод параметров параллелепипеда
+    cout << "Parallelepiped volume: " << pp.volume() << "\n"; // Вывод объема
+
+    return 0; // Завершение программы
+}
