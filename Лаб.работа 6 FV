@@ -1,4 +1,4 @@
-// point.h
+// point.h - Заголовочный файл для класса Point
 #ifndef POINT_H
 #define POINT_H
 
@@ -21,7 +21,7 @@ public:
 
 #endif // POINT_H
 
-// point.cpp
+// point.cpp - Реализация класса Point
 #include "Point.h"
 
 Point::Point(double x, double y) : x(x), y(y) {}
@@ -30,7 +30,7 @@ void Point::display() const {
     cout << "Точка: (" << x << ", " << y << ")\n";
 }
 
-// quadrilateral.h
+// quadrilateral.h - Заголовочный файл для класса Quadrilateral
 #ifndef QUADRILATERAL_H
 #define QUADRILATERAL_H
 #include "Point.h"
@@ -47,9 +47,9 @@ public:
     void setWidth(double w) { if (w >= 0) width = w; }
 };
 
-#endif // QUADRILATERAL_H
+#endif // QUADRILATERAL_H 
 
-// quadrilateral.cpp
+// quadrilateral.cpp - Реализация класса Quadrilateral
 #include "Quadrilateral.h"
 
 Quadrilateral::Quadrilateral(double x, double y, double length, double width)
@@ -69,7 +69,7 @@ void Quadrilateral::display() const {
         << length << " и шириной: " << width << "\n";
 }
 
-// parallelepiped.h
+// parallelepiped.h Заголовочный файл для класса Parallelepiped
 #ifndef PARALLELEPIPED_H
 #define PARALLELEPIPED_H
 #include "Quadrilateral.h"
@@ -87,7 +87,7 @@ public:
 
 #endif // PARALLELEPIPED_H
 
-// parallelepiped.cpp
+// parallelepiped.cpp - Реализация класса Parallelepiped
 #include "Parallelepiped.h"
 
 Parallelepiped::Parallelepiped(double x, double y, double length, double width, double height)
@@ -107,7 +107,7 @@ void Parallelepiped::display() const {
         << length << ", шириной: " << width << " и высотой: " << height << "\n";
 }
 
-// main.cpp
+// main.cpp - Основная программа
 #include "Point.h"
 #include "Quadrilateral.h"
 #include "Parallelepiped.h"
