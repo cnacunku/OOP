@@ -1,0 +1,132 @@
+// point.h
+#ifndef POINT_H
+#define POINT_H
+
+#include <iostream>
+using namespace std;
+
+// Базовый класс Point (Точка)
+class Point {
+protected:
+    double x, y; // Координаты точки
+public:
+    Point(double x = 0, double y = 0); // Конструктор с параметрами по умолчанию
+    virtual void display() const; // Метод для отображения координат точки
+    virtual ~Point() {} // Виртуальный деструктор
+    double getX() const { return x; };
+    double getY() const { return y; }
+    void setX(double xx) { x = xx; };
+    void setY(double yy) { y = yy; };
+};
+
+#endif // POINT_H
+
+// point.cpp
+#include "Point.h"
+
+Point::Point(double x, double y) : x(x), y(y) {}
+
+void Point::display() const {
+    cout << "Точка: (" << x << ", " << y << ")\n";
+}
+
+// quadrilateral.h
+#ifndef QUADRILATERAL_H
+#define QUADRILATERAL_H
+#include "Point.h"
+
+class Quadrilateral : public Point {
+protected:
+    double length, width;
+public:
+    Quadrilateral(double x, double y, double length, double width);
+    virtual void display() const override;
+    double area() const;
+    double perimetr() const;
+    void setLenght(double l) { if (l >= 0) length = l; };
+    void setWidth(double w) { if (w >= 0) width = w; }
+};
+
+#endif // QUADRILATERAL_H
+
+// quadrilateral.cpp
+#include "Quadrilateral.h"
+
+Quadrilateral::Quadrilateral(double x, double y, double length, double width)
+    : Point(x, y), length(length), width(width) {
+}
+
+double Quadrilateral::area() const {
+    return length * width;
+}
+
+double Quadrilateral::perimetr() const {
+    return 2 * (length + width);
+}
+
+void Quadrilateral::display() const {
+    cout << "Четырехугольник находится на координатах: (" << x << ", " << y << ") с длиной: "
+        << length << " и шириной: " << width << "\n";
+}
+
+// parallelepiped.h
+#ifndef PARALLELEPIPED_H
+#define PARALLELEPIPED_H
+#include "Quadrilateral.h"
+
+class Parallelepiped : public Quadrilateral {
+protected:
+    double height;
+public:
+    Parallelepiped(double x, double y, double length, double width, double height);
+    void display() const override;
+    double volume() const;
+    double surfaceArea() const;
+    void setHeight(double h) { if (h >= 0) height = h; }
+};
+
+#endif // PARALLELEPIPED_H
+
+// parallelepiped.cpp
+#include "Parallelepiped.h"
+
+Parallelepiped::Parallelepiped(double x, double y, double length, double width, double height)
+    : Quadrilateral(x, y, length, width), height(height) {
+}
+
+double Parallelepiped::volume() const {
+    return length * width * height;
+}
+
+double Parallelepiped::surfaceArea() const {
+    return 2 * (length * width + length * height + width * height);
+}
+
+void Parallelepiped::display() const {
+    cout << "Параллелепипед находится на координатах: (" << x << ", " << y << ") с длиной: "
+        << length << ", шириной: " << width << " и высотой: " << height << "\n";
+}
+
+// main.cpp
+#include "Point.h"
+#include "Quadrilateral.h"
+#include "Parallelepiped.h"
+#include <locale>
+
+int main() {
+    setlocale(0, "ru");
+
+    Point p(1, 2);
+    Quadrilateral q(3, 4, 5, 6);
+    Parallelepiped pp(7, 8, 9, 10, 11);
+
+    p.display();
+    q.display();
+    cout << "Площадь четырехугольника: " << q.area() << "\n";
+    cout << "Периметр четырехугольника: " << q.perimetr() << "\n";
+    pp.display();
+    cout << "Объем параллелепипеда: " << pp.volume() << "\n";
+    cout << "Площадь поверхности: " << pp.surfaceArea() << "\n";
+
+    return 0;
+}
