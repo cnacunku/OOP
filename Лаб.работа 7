@@ -1,1 +1,36 @@
+#include <iostream>
+#include <fstream>
+#include <locale>
+#include <string>
+#include <iomanip>
 
+using namespace std;
+ 
+class Dog {
+private: 
+	string name;
+	string type; 
+	int age;
+
+public:
+	Dog(string Dogname, string Dogtype, int Dogage) {
+		name = Dogname;
+		type = Dogtype;
+		age = Dogage;
+	}
+
+	void display() {
+		cout << "Имя пёсика: " << name << ", порода " << type << ", собаке " << age <<"." << endl;
+	}
+};
+
+int main() {
+	setlocale(0, "ru");
+
+	Dog Kris("Крис", "Йорк", 7);
+	Dog Masha("Мэри", "Чихуахуа", 8);
+
+	Kris.display();
+	Masha.display();
+	return 0;
+}
