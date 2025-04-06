@@ -150,50 +150,23 @@ public:
     bool Ticket() const override { return true; }
 };
 
-class FreePassenger : public Passenger {
+class nopayPassenger : public Passenger {
 public:
-    string Type() const override { return "Заяц(безбилетник"; }
+    string Type() const override { return "Заяц (безбилетник)"; }
     double Fare() const override { return 0.0; }
     bool Ticket() const override { return false; }
 };
 
-int main() {
-    setlocale(0, "ru");
-
-    // Часть 1
-    Expression* e1 = new Number(1.234);
-    Expression* e2 = new Number(-1.234);
-    Expression* e3 = new  BinaryOperation(e1, BinaryOperation::DIV, e2);
-    cout << e3->evaluate() << endl;
-    delete e3;
-
-    // Часть 2
-    Expression* n32 = new Number(32.0);
-    Expression* n16 = new Number(16.0);
-    Expression* minus = new BinaryOperation(n32, BinaryOperation::MINUS, n16);
-    Expression* callSqrt = new FunctionCall("sqrt", minus);
-    Expression* n2 = new Number(2.0);
-    Expression* mult = new BinaryOperation(n2, BinaryOperation::MUL, callSqrt);
-    Expression* callAbs = new FunctionCall("abs", mult);
-    cout << callAbs->evaluate() << endl;
-    delete callAbs;
-
-    // Часть 3 
-    vector<Passenger*> passengers = {
-      new TicPassenger(),
-      new SeasonPassenger(),
-      new TransCardPassenger("студент"),
-      new TransCardPassenger("пенсионер"),
-      new TransCardPassenger("обычный"),
-      new FreePassenger(),
-      new TicPassenger(),
-      new TransCardPassenger("студент"),
-      new TransCardPassenger("студент"),
-      new FreePassenger()
+void displayPassengers(const vector<Passenger*>& passengers) {
+    const int typeCountSize = 6; // Количество типов пассажиров
+    string types[typeCountSize] = { 
+        "Пассажир с билетом", 
+        "Пассажир с льготной сезонкой", 
+        "Транспортная карта (студент)", 
+        "Транспортная карта (пенсионер)", 
+        "Транспортная карта (обычный)", 
+        "Заяц (безбилетник)" 
     };
-
-    const int typeCountSize = 5; // Количество типов пассажиров
-    string types[typeCountSize] = { "Пассажир с билетом", "Пассажир с льготной сезонкой", "Транспортная карта (студент)", "Транспортная карта (пенсионер)", "Транспортная карта (обычный)" };
     int count[typeCountSize] = { 0 }; // Количество пассажиров отдельного типа
     double revenue[typeCountSize] = { 0.0 }; // Выручка за отдельный тип пассажиоров
     double totRevenue = 0.0; // Вся выручка
@@ -230,6 +203,44 @@ int main() {
     cout << setw(35) << "ИТОГО:"
         << setw(10) << passengers.size()
         << totRevenue << " руб." << endl;
+}
+
+int main() {
+    setlocale(0, "ru");
+
+    // Часть 1
+    Expression* e1 = new Number(1.234);
+    Expression* e2 = new Number(-1.234);
+    Expression* e3 = new  BinaryOperation(e1, BinaryOperation::DIV, e2);
+    cout << "Результат деления: " << e3->evaluate() << endl << endl;   
+    delete e3;
+
+    // Часть 2
+    Expression* n32 = new Number(32.0);
+    Expression* n16 = new Number(16.0);
+    Expression* minus = new BinaryOperation(n32, BinaryOperation::MINUS, n16);
+    Expression* callSqrt = new FunctionCall("sqrt", minus);
+    Expression* n2 = new Number(2.0);
+    Expression* mult = new BinaryOperation(n2, BinaryOperation::MUL, callSqrt);
+    Expression* callAbs = new FunctionCall("abs", mult);
+    cout << "Результат вычисления: " << callAbs->evaluate() << endl << endl;
+    delete callAbs;
+
+    // Часть 3 
+    vector<Passenger*> passengers = {
+      new TicPassenger(),
+      new SeasonPassenger(),
+      new TransCardPassenger("студент"),
+      new TransCardPassenger("пенсионер"),
+      new TransCardPassenger("обычный"),
+      new nopayPassenger(),
+      new TicPassenger(),
+      new TransCardPassenger("студент"),
+      new TransCardPassenger("студент"),
+      new nopayPassenger()
+    };
+
+    displayPassengers(passengers);
 
     // Очищаем память
     for (auto passenger : passengers) {
