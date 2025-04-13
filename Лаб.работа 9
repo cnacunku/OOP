@@ -1,0 +1,339 @@
+#include <iostream>
+#include <fstream>
+#include <string>
+#include <locale.h>
+#include <cstddef>
+#include <utility>
+#include <type_traits>
+
+
+using namespace std;
+
+// Функция для подсчёта знаков пунктуации в строке
+int countPunctuation(const string& line) {
+    const string punctuation = "<>.,!?;:-\"'(){}[]"; // Все знаки пунктуации
+    int count = 0;
+    for (char ch : line) {
+        if (punctuation.find(ch) != string::npos) { // Если найден подходящий символ, счётчик увеличивается
+            count++;
+        }
+    }
+    return count;
+}
+
+
+template <typename T>
+class Array {
+private:
+    T* myArray;
+    size_t n;
+
+public:
+    // Конструктор с параметрами (использует placement new)
+    explicit Array(size_t size = 0, const T& value = T()) : n(size) {
+        myArray = static_cast<T*>(operator new[](n * sizeof(T)));
+        for (size_t i = 0; i < n; ++i) {
+            new (myArray + i) T(value);
+        }
+    }
+
+    // Конструктор копирования (использует placement new)
+    Array(const Array& mas) : n(mas.n) {
+        myArray = static_cast<T*>(operator new[](n * sizeof(T)));
+        for (size_t i = 0; i < n; ++i) {
+            new (myArray + i) T(mas.myArray[i]);
+        }
+    }
+
+    // Деструктор (явно вызывает деструкторы)
+    ~Array() {
+        for (size_t i = 0; i < n; ++i) {
+            myArray[i].~T();
+        }
+        operator delete[](myArray);
+    }
+
+    // Оператор присваивания (без использования operator= для T)
+    Array& operator=(const Array& mas) {
+        if (this != &mas) {
+            // Удаляем старые элементы
+            for (size_t i = 0; i < n; ++i) {
+                myArray[i].~T();
+            }
+            operator delete[](myArray);
+
+            // Копируем новые данные
+            n = mas.n;
+            myArray = static_cast<T*>(operator new[](n * sizeof(T)));
+            for (size_t i = 0; i < n; ++i) {
+                new (myArray + i) T(mas.myArray[i]);
+            }
+        }
+        return *this;
+    }
+
+    // Оператор доступа по индексу
+    T& operator[](size_t idx) {
+        return myArray[idx];
+    }
+
+    // Константный оператор доступа по индексу
+    const T& operator[](size_t idx) const {
+        return myArray[idx];
+    }
+
+    // Метод для получения размера
+    size_t size() const {
+        return n;
+    }
+};
+
+template <typename T>
+class ArrayNoAssign {
+private:
+    char* buffer_;  // Буфер для хранения сырых данных
+    size_t size_;   // Количество элементов
+
+public:
+    // Конструктор
+    explicit ArrayNoAssign(size_t size = 0, const T& value = T()) : size_(size) {
+        buffer_ = new char[size_ * sizeof(T)];  // Выделяем память как char[]
+        for (size_t i = 0; i < size_; ++i) {
+            new (buffer_ + i * sizeof(T)) T(value);  // Placement new для каждого элемента
+        }
+    }
+
+    // Конструктор копирования
+    ArrayNoAssign(const ArrayNoAssign& other) : size_(other.size_) {
+        buffer_ = new char[size_ * sizeof(T)];
+        for (size_t i = 0; i < size_; ++i) {
+            new (buffer_ + i * sizeof(T)) T(other[i]);  // Копируем через конструктор копирования
+        }
+    }
+
+    // Деструктор
+    ~ArrayNoAssign() {
+        for (size_t i = 0; i < size_; ++i) {
+            reinterpret_cast<T*>(buffer_ + i * sizeof(T))->~T();  // Явный вызов деструктора
+        }
+        delete[] buffer_;
+    }
+
+    // Оператор присваивания (без использования operator= для T)
+    ArrayNoAssign& operator=(const ArrayNoAssign& other) {
+        if (this != &other) {
+            // Удаляем старые элементы
+            for (size_t i = 0; i < size_; ++i) {
+                reinterpret_cast<T*>(buffer_ + i * sizeof(T))->~T();
+            }
+            delete[] buffer_;
+
+            // Копируем новые данные
+            size_ = other.size_;
+            buffer_ = new char[size_ * sizeof(T)];
+            for (size_t i = 0; i < size_; ++i) {
+                new (buffer_ + i * sizeof(T)) T(other[i]);  // Placement new + конструктор копирования
+            }
+        }
+        return *this;
+    }
+
+    // Доступ к элементам
+    T& operator[](size_t idx) {
+        return *reinterpret_cast<T*>(buffer_ + idx * sizeof(T));
+    }
+
+    const T& operator[](size_t idx) const {
+        return *reinterpret_cast<const T*>(buffer_ + idx * sizeof(T));
+    }
+
+    size_t size() const { return size_; }
+};
+
+// Упражнение 3 - ValueHolder и ICloneable
+struct ICloneable {
+    virtual ICloneable* clone() const = 0;
+    virtual ~ICloneable() {}
+};
+
+template <typename T>
+struct ValueHolder : public ICloneable {
+    T data_;
+
+    explicit ValueHolder(const T& value) : data_(value) {}
+
+    ICloneable* clone() const override {
+        return new ValueHolder(data_);
+    }
+};
+
+// Упражнение 4 - функция copy_n
+template <typename T, typename U>
+void copy_n(T* dest, U* src, size_t n) {
+    for (size_t i = 0; i < n; ++i) {
+        dest[i] = static_cast<T>(src[i]);
+    }
+}
+
+// Упражнение 5 - функция minimum
+template <typename T, typename Comparator>
+T minimum(const Array<T>& arr, Comparator comp) {
+    T min = arr[0];
+    for (size_t i = 1; i < arr.size(); ++i) {
+        if (comp(arr[i], min)) {
+            min = arr[i];
+        }
+    }
+    return min;
+}
+
+// Упражнение 6 - функция flatten
+template <typename T>
+void flatten(const T& value, std::ostream& out) {
+    out << value << " ";
+}
+
+template <typename T>
+void flatten(const Array<T>& arr, std::ostream& out) {
+    for (size_t i = 0; i < arr.size(); ++i) {
+        flatten(arr[i], out);
+    }
+}
+
+// Упражнение 7 - класс Any
+class Any {
+private:
+    ICloneable* holder;
+
+public:
+    Any() : holder(nullptr) {}
+
+    template <typename T>
+    Any(const T& value) : holder(new ValueHolder<T>(value)) {}
+
+    Any(const Any& other) : holder(other.holder ? other.holder->clone() : nullptr) {}
+
+    ~Any() {
+        delete holder;
+    }
+
+    Any& operator=(const Any& other) {
+        if (this != &other) {
+            delete holder;
+            holder = other.holder ? other.holder->clone() : nullptr;
+        }
+        return *this;
+    }
+
+    template <typename T>
+    T* cast() {
+        ValueHolder<T>* valueHolder = dynamic_cast<ValueHolder<T>*>(holder);
+        return valueHolder ? &valueHolder->data_ : nullptr;
+    }
+};
+
+// Упражнение 8 - шаблон SameType
+template <typename T, typename U>
+struct SameType {
+    static const bool value = false;
+};
+
+template <typename T>
+struct SameType<T, T> {
+    static const bool value = true;
+};
+
+// Упражнение 9 - функция array_size
+template <typename T, size_t N>
+size_t array_size(T(&array)[N]) {
+    return N;
+}
+
+bool less(int a, int b) { 
+    return a < b; 
+}
+
+
+int main() {
+    setlocale(0, "ru");
+
+    // Часть 9.1
+    ifstream file("nIneQ.txt"); // Открываем файл для чтения
+    if (!file.is_open()) {
+        cerr << "Ошибка: не удалось открыть файл!" << endl;
+        return 1;
+    }
+
+    string line;
+    string maxPunctLine;
+    int maxPunctCount = 0;
+
+    while (getline(file, line)) { // Читаем файл построчно
+        int punctCount = countPunctuation(line);
+        if (punctCount > maxPunctCount) {
+            maxPunctCount = punctCount;
+            maxPunctLine = line;
+        }
+    }
+
+    file.close();
+
+    if (maxPunctCount > 0) {
+        cout << "Строка с наибольшим количеством знаков пунктуации ("
+            << maxPunctCount << "):" << endl;
+        cout << maxPunctLine << endl;
+    }
+    else {
+        cout << "В файле нет знаков пунктуации." << endl;
+    }
+
+
+    // Часть 9.2
+    // Пример для упражнения 1
+    Array<int> intArr(5, 42);
+    cout << "Размер массива int: " << intArr.size() << endl;
+    for (size_t i = 0; i < intArr.size(); ++i) {
+        cout << "Элемент " << i << ": " << intArr[i] << endl;
+    }
+
+    // Пример для упражнения 2
+    ArrayNoAssign<string> stringArr(3, "Hello");
+    cout << "Размер массива string: " << stringArr.size() << endl;
+    for (size_t i = 0; i < stringArr.size(); ++i) {
+        cout << "Элемент " << i << ": " << stringArr[i] << endl;
+    }
+
+    // Пример для упражнения 3
+    ValueHolder<int> vh(10);
+    ICloneable* clone = vh.clone();
+    delete clone;
+
+    // Пример для упражнения 4
+    int ints[] = { 1, 2, 3, 4 };
+    double doubles[4] = {};
+    copy_n(doubles, ints, 4);
+
+    // Пример для упражнения 5
+    Array<int> arr(3);
+    arr[0] = 10; arr[1] = 2; arr[2] = 15;
+    cout << "Минимум: " << minimum(arr, [](int a, int b) { return a < b; }) << endl;
+
+
+    // Пример для упражнения 6
+    Array<int> flatInts(2, 0);
+    flatInts[0] = 10; flatInts[1] = 20;
+    flatten(flatInts, cout);
+
+    // Пример для упражнения 7
+    Any anyInt(42);
+    int* ptr = anyInt.cast<int>();
+
+    // Пример для упражнения 8
+    cout << SameType<int, int>::value << endl;
+
+    // Пример для упражнения 9
+    int testArr[] = { 1, 2, 3, 4, 5 };
+    cout << array_size(testArr) << endl;
+
+    return 0;
+}
