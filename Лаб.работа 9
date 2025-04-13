@@ -22,6 +22,20 @@ int countPunctuation(const string& line) {
 }
 
 
+class Employee {
+private:
+    string name_;
+    int id_;
+
+public:
+    Employee() : name_(""), id_(0) {}
+    Employee(const string& name, int id) : name_(name), id_(id) {}
+
+    friend ostream& operator<<(ostream& os, const Employee& e) {
+        return os << e.name_ << " (iD: " << e.id_ << ")";
+    }
+};
+
 template <typename T>
 class Array {
 private:
@@ -249,59 +263,49 @@ size_t array_size(T(&array)[N]) {
     return N;
 }
 
-bool less(int a, int b) { 
-    return a < b; 
-}
-
-
 int main() {
     setlocale(0, "ru");
 
-    // Часть 9.1
-    ifstream file("nIneQ.txt"); // Открываем файл для чтения
-    if (!file.is_open()) {
-        cerr << "Ошибка: не удалось открыть файл!" << endl;
-        return 1;
-    }
+    //// Часть 9.1
+    //ifstream file("nIneQ.txt"); // Открываем файл для чтения
+    //if (!file.is_open()) {
+    //    cerr << "Ошибка: не удалось открыть файл!" << endl;
+    //    return 1;
+    //}
 
-    string line;
-    string maxPunctLine;
-    int maxPunctCount = 0;
+    //string line;
+    //string maxPunctLine;
+    //int maxPunctCount = 0;
 
-    while (getline(file, line)) { // Читаем файл построчно
-        int punctCount = countPunctuation(line);
-        if (punctCount > maxPunctCount) {
-            maxPunctCount = punctCount;
-            maxPunctLine = line;
-        }
-    }
+    //while (getline(file, line)) { // Читаем файл построчно
+    //    int punctCount = countPunctuation(line);
+    //    if (punctCount > maxPunctCount) {
+    //        maxPunctCount = punctCount;
+    //        maxPunctLine = line;
+    //    }
+    //}
 
-    file.close();
+    //file.close();
 
-    if (maxPunctCount > 0) {
-        cout << "Строка с наибольшим количеством знаков пунктуации ("
-            << maxPunctCount << "):" << endl;
-        cout << maxPunctLine << endl;
-    }
-    else {
-        cout << "В файле нет знаков пунктуации." << endl;
-    }
+    //if (maxPunctCount > 0) {
+    //    cout << "Строка с наибольшим количеством знаков пунктуации ("
+    //        << maxPunctCount << "):" << endl;
+    //    cout << maxPunctLine << endl;
+    //}
+    //else {
+    //    cout << "В файле нет знаков пунктуации." << endl;
+    //}
 
 
     // Часть 9.2
     // Пример для упражнения 1
-    Array<int> intArr(5, 42);
-    cout << "Размер массива int: " << intArr.size() << endl;
-    for (size_t i = 0; i < intArr.size(); ++i) {
-        cout << "Элемент " << i << ": " << intArr[i] << endl;
-    }
+       Array<int> intArr(5, 42);
+    cout << "Размер массива целых чисел: " << intArr.size() << endl;
 
-    // Пример для упражнения 2
-    ArrayNoAssign<string> stringArr(3, "Hello");
-    cout << "Размер массива string: " << stringArr.size() << endl;
-    for (size_t i = 0; i < stringArr.size(); ++i) {
-        cout << "Элемент " << i << ": " << stringArr[i] << endl;
-    }
+    // Тестирование упражнения 2
+    ArrayNoAssign<Employee> employeeArr(2, Employee("Ольа", 12345));
+    cout << "Размер массива сотрудников: " << employeeArr.size() << endl;
+
 
     // Пример для упражнения 3
     ValueHolder<int> vh(10);
@@ -327,6 +331,7 @@ int main() {
     // Пример для упражнения 7
     Any anyInt(42);
     int* ptr = anyInt.cast<int>();
+    cout << "Значение anyInt: " << (ptr ? *ptr : 0) << endl;
 
     // Пример для упражнения 8
     cout << SameType<int, int>::value << endl;
