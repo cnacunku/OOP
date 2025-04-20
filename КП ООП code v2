@@ -1,0 +1,128 @@
+#include <iostream>
+#include <vector>
+#include <string>
+#include <locale>
+#include <cmath> // Добавлено для pow()
+
+using namespace std;
+
+class Client {
+private:
+    string name;
+    string id;
+    double monthSalary;
+
+public:
+    Client(string n, string i, double salary)
+        : name(n), id(i), monthSalary(salary) {
+    }
+
+    string getName() const { return name; }
+    string getId() const { return id; }
+    double getMonthSalary() const { return monthSalary; }
+};
+
+class Credit {
+private:
+    Client client;
+    double amount;
+    double rate;
+    int term;
+    bool approved;
+
+public:
+    Credit(Client c, double a, double r, int t)
+        : client(c), amount(a), rate(r), term(t), approved(false) {
+    }
+
+    void approve() { approved = true; }
+    bool isApproved() const { return approved; }
+
+    double calculateMonthlyPayment() const {
+        if (!approved) return 0;
+        double monthlyRate = rate / 100 / 12;
+        return (amount * monthlyRate) / (1 - pow(1 + monthlyRate, -term));
+    }
+
+    Client getClient() const { return client; }
+    double getAmount() const { return amount; }
+    double getRate() const { return rate; }
+    int getTerm() const { return term; }
+};
+
+class CreditApplication {
+private:
+    Client client;
+    double requestedAmount;
+    int term;
+    bool isApproved;
+
+    bool isPaymentAffordable(double monthlyPayment) const {
+        return monthlyPayment <= (client.getMonthSalary() * 0.4);
+    }
+
+public:
+    CreditApplication(Client c, double amount, int t)
+        : client(c), requestedAmount(amount), term(t), isApproved(false) {
+    }
+
+    bool checkCreditworthiness(double annualRate = 10.0) {
+        double monthlyRate = annualRate / 100 / 12;
+        double monthlyPayment = (requestedAmount * monthlyRate) /
+            (1 - pow(1 + monthlyRate, -term));
+        isApproved = isPaymentAffordable(monthlyPayment);
+        return isApproved;
+    }
+
+    double getMaxAllowedAmount(double annualRate = 10.0) const {
+        double monthlyRate = annualRate / 100 / 12;
+        double maxMonthlyPayment = client.getMonthSalary() * 0.4;
+        return maxMonthlyPayment * (1 - pow(1 + monthlyRate, -term)) / monthlyRate;
+    }
+
+    Client getClient() const { return client; }
+    double getRequestedAmount() const { return requestedAmount; }
+    int getTerm() const { return term; }
+    bool getIsApproved() const { return isApproved; }
+};
+
+class Bank {
+private:
+    vector<Client> clients;
+    vector<Credit> credits;
+    vector<CreditApplication> applications;
+
+public:
+    void addClient(Client c) { clients.push_back(c); }
+    void addCredit(Credit c) { credits.push_back(c); }
+
+    void processApplication(CreditApplication& app, double rate = 10.0) {
+        if (app.checkCreditworthiness(rate)) {
+            Credit credit(app.getClient(), app.getRequestedAmount(), rate, app.getTerm());
+            credit.approve();
+            credits.push_back(credit);
+            cout << app.getClient().getName() << ", вам одобрен кредит под " << rate << "% годовых" << endl;
+        }
+        else {
+            cout << "Отказ. Максимальная доступная сумма: "
+                << app.getMaxAllowedAmount(rate) << " руб. под " << rate << "%" << endl;
+        }
+    }
+};
+
+int main() {
+    setlocale(0, "ru");
+
+    Bank bank;
+    Client client("Имя", "iD", 66000.0);
+    bank.addClient(client);
+
+    CreditApplication app(client, 300000, 12);
+
+    // Проверка с разными ставками
+    bank.processApplication(app); // По умолчанию 10%
+    bank.processApplication(app, 8.5); // Проверяем под 8.5%
+    bank.processApplication(app, 15.0); // Проверяем под 15%
+
+    return 0;
+}
