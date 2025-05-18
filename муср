@@ -1,0 +1,303 @@
+#include <iostream>
+#include <vector>
+#include <string>
+#include <locale>
+#include <cmath>
+#include <map> // Добавлено для CreditType специфичных параметров
+
+using namespace std;
+
+// Перечисление типов кредитов
+enum class CreditType {
+    PERSONAL,
+    MORTGAGE,
+    AUTO_LOAN,
+    BUSINESS
+};
+
+class Client {
+private:
+    string name;
+    string id;
+    double monthSalary;
+
+public:
+    Client(string n, string i, double salary)
+        : name(n), id(i), monthSalary(salary) {
+    }
+
+    string getName() const { return name; }
+    string getId() const { return id; }
+    double getMonthSalary() const { return monthSalary; }
+};
+
+// Класс для оценки кредитного рейтинга
+class CreditScore {
+private:
+    string clientId;
+    int score;
+    vector<string> negativeFactors;
+
+public:
+    CreditScore(const string& id) : clientId(id), score(650) {}
+
+    void calculateScore(const Client& client) {
+        score = 650; // Базовая оценка
+
+        // Примерная логика расчета
+        if (client.getMonthSalary() < 30000) {
+            addNegativeFactor("Низкий доход");
+        }
+        // Дополнительные факторы можно добавить здесь
+    }
+
+    void addNegativeFactor(const string& factor) {
+        negativeFactors.push_back(factor);
+        score -= 20;
+    }
+
+    int getScore() const { return score; }
+    const vector<string>& getNegativeFactors() const { return negativeFactors; }
+};
+
+// Класс для истории платежей
+class Payment {
+private:
+    string date;
+    double amount;
+    bool isOnTime;
+
+public:
+    Payment(string d, double a, bool onTime)
+        : date(d), amount(a), isOnTime(onTime) {
+    }
+
+    string getDate() const { return date; }
+    double getAmount() const { return amount; }
+    bool getIsOnTime() const { return isOnTime; }
+};
+
+class CreditHistory {
+private:
+    vector<Payment> payments;
+
+public:
+    void addPayment(const Payment& p) {
+        payments.push_back(p);
+    }
+
+    double calculateOnTimePercentage() const {
+        if (payments.empty()) return 100.0;
+
+        int onTimeCount = 0;
+        for (const auto& payment : payments) {
+            if (payment.getIsOnTime()) {
+                onTimeCount++;
+            }
+        }
+        return (static_cast<double>(onTimeCount) / payments.size()) * 100;
+    }
+
+    const vector<Payment>& getPayments() const { return payments; }
+};
+
+class Credit {
+private:
+    Client client;
+    double amount;
+    double rate;
+    int term;
+    bool approved;
+    CreditType type;
+    map<string, double> typeSpecificParams; // Параметры, специфичные для типа кредита
+    CreditHistory history;
+
+public:
+    Credit(Client c, double a, double r, int t, CreditType ct = CreditType::PERSONAL)
+        : client(c), amount(a), rate(r), term(t), approved(false), type(ct) {
+    }
+
+    void approve() { approved = true; }
+    bool isApproved() const { return approved; }
+
+    double calculateMonthlyPayment() const {
+        if (!approved) return 0;
+        double monthlyRate = rate / 100 / 12;
+        return (amount * monthlyRate) / (1 - pow(1 + monthlyRate, -term));
+    }
+
+    void addPayment(const Payment& p) {
+        history.addPayment(p);
+    }
+
+    double getOnTimePaymentPercentage() const {
+        return history.calculateOnTimePercentage();
+    }
+
+    void setTypeSpecificParam(const string& paramName, double value) {
+        typeSpecificParams[paramName] = value;
+    }
+
+    double getTypeSpecificParam(const string& paramName) const {
+        auto it = typeSpecificParams.find(paramName);
+        if (it != typeSpecificParams.end()) {
+            return it->second;
+        }
+        return 0.0;
+    }
+
+    Client getClient() const { return client; }
+    double getAmount() const { return amount; }
+    double getRate() const { return rate; }
+    int getTerm() const { return term; }
+    CreditType getType() const { return type; }
+    const CreditHistory& getCreditHistory() const { return history; }
+};
+
+class CreditApplication {
+private:
+    Client client;
+    double requestedAmount;
+    int term;
+    bool isApproved;
+    CreditType creditType;
+    CreditScore score;
+
+    bool isPaymentAffordable(double monthlyPayment) const {
+        return monthlyPayment <= (client.getMonthSalary() * 0.4);
+    }
+
+public:
+    CreditApplication(Client c, double amount, int t, CreditType ct = CreditType::PERSONAL)
+        : client(c), requestedAmount(amount), term(t), isApproved(false),
+        creditType(ct), score(c.getId()) {
+        score.calculateScore(client);
+    }
+
+    bool checkCreditworthiness(double annualRate = 10.0) {
+        // Учитываем кредитный рейтинг при принятии решения
+        if (score.getScore() < 600) {
+            isApproved = false;
+            return false;
+        }
+
+        double monthlyRate = annualRate / 100 / 12;
+        double monthlyPayment = (requestedAmount * monthlyRate) /
+            (1 - pow(1 + monthlyRate, -term));
+        isApproved = isPaymentAffordable(monthlyPayment);
+        return isApproved;
+    }
+
+    double getMaxAllowedAmount(double annualRate = 10.0) const {
+        double monthlyRate = annualRate / 100 / 12;
+        double maxMonthlyPayment = client.getMonthSalary() * 0.4;
+        return maxMonthlyPayment * (1 - pow(1 + monthlyRate, -term)) / monthlyRate;
+    }
+
+    Client getClient() const { return client; }
+    double getRequestedAmount() const { return requestedAmount; }
+    int getTerm() const { return term; }
+    bool getIsApproved() const { return isApproved; }
+    CreditType getCreditType() const { return creditType; }
+    int getCreditScore() const { return score.getScore(); }
+    const vector<string>& getNegativeFactors() const { return score.getNegativeFactors(); }
+};
+
+class Bank {
+private:
+    vector<Client> clients;
+    vector<Credit> credits;
+    vector<CreditApplication> applications;
+    map<string, CreditScore> creditScores;
+    map<string, CreditHistory> creditHistories;
+
+public:
+    void addClient(Client c) {
+        clients.push_back(c);
+        creditScores.emplace(c.getId(), c.getId());
+        creditScores[c.getId()].calculateScore(c);
+    }
+
+    void addCredit(Credit c) {
+        credits.push_back(c);
+        // Добавляем историю платежей для нового кредита
+        creditHistories.emplace(c.getClient().getId(), CreditHistory());
+    }
+
+    void recordPayment(const string& clientId, const Payment& p) {
+        auto it = creditHistories.find(clientId);
+        if (it != creditHistories.end()) {
+            it->second.addPayment(p);
+        }
+    }
+
+    double getClientCreditScore(const string& clientId) const {
+        auto it = creditScores.find(clientId);
+        if (it != creditScores.end()) {
+            return it->second.getScore();
+        }
+        return 0;
+    }
+
+    void processApplication(CreditApplication& app, double rate = 10.0) {
+        // Проверяем кредитный рейтинг
+        if (app.getCreditScore() < 600) {
+            cout << "Отказ. Низкий кредитный рейтинг: " << app.getCreditScore() << endl;
+            cout << "Негативные факторы:" << endl;
+            for (const auto& factor : app.getNegativeFactors()) {
+                cout << "- " << factor << endl;
+            }
+            return;
+        }
+
+        if (app.checkCreditworthiness(rate)) {
+            Credit credit(app.getClient(), app.getRequestedAmount(), rate,
+                app.getTerm(), app.getCreditType());
+
+            // Установка специфичных параметров для разных типов кредитов
+            switch (app.getCreditType()) {
+            case CreditType::MORTGAGE:
+                credit.setTypeSpecificParam("property_value", app.getRequestedAmount() * 1.5);
+                break;
+            case CreditType::AUTO_LOAN:
+                credit.setTypeSpecificParam("car_age", 3);
+                break;
+            case CreditType::BUSINESS:
+                credit.setTypeSpecificParam("business_plan_score", 85);
+                break;
+            default:
+                break;
+            }
+
+            credit.approve();
+            credits.push_back(credit);
+            cout << app.getClient().getName() << ", вам одобрен кредит на сумму "
+                << app.getRequestedAmount() << " под " << rate << " % годовых" << endl;
+        }
+        else {
+            cout << "Отказ. Максимальная доступная сумма: "
+                << app.getMaxAllowedAmount(rate) << " руб. под " << rate << "%" << endl;
+        }
+    }
+};
+
+int main() {
+    setlocale(0, "ru");
+
+    Bank bank;
+
+    // Создаем клиента
+    Client client("Иван Иванов", "12345", 50000);
+    bank.addClient(client);
+
+    // Создаем заявку на кредит
+    CreditApplication app(client, 1000000, 36, CreditType::MORTGAGE);
+
+    // Обрабатываем заявку
+    bank.processApplication(app, 8.5);
+
+    // Добавляем платеж в историю (пример)
+    bank.recordPayment("12345", Payment("2023-05-20", 35000, true));
+
+    return 0;
+}
